@@ -1,4 +1,4 @@
-<img align="right" width="40%" src="https://www.finos.org/hubfs/FINOS/finos-logo/FINOS_Icon_Wordmark_Name_RGB_horizontal.png">
+<img align="right" alt="Logo" width="160" height="160" src="./website/static/img/project/logo_agent.png">
 
 # FINOS Software Project Blueprint
 
