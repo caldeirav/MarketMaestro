@@ -10,4 +10,4 @@ fastapi==0.112.0
 uvicorn==0.30.5
 pydantic==2.8.2
 chromadb==0.5.5
-tiktoken==0.7.0
+transformers==4.43.3

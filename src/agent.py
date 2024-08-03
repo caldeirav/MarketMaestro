@@ -12,7 +12,7 @@ from langchain_huggingface import HuggingFaceEmbeddings
 from langchain_community.document_loaders import PyPDFLoader
 from langchain.text_splitter import CharacterTextSplitter
 from langchain_core.output_parsers import StrOutputParser
-import tiktoken
+from transformers import AutoTokenizer
 
 from src.config import MODEL_SERVICE, API_KEY, ANNUAL_REPORTS_DIR
 
@@ -22,8 +22,13 @@ logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(
 # Initialize the LLM
 llm = ChatOpenAI(base_url=MODEL_SERVICE, api_key=API_KEY, streaming=True, max_tokens=1500)
 
-# Initialize tokenizer
-tokenizer = tiktoken.encoding_for_model("gpt-2")
+# Initialize tokenizer for Llama2
+try:
+    tokenizer = AutoTokenizer.from_pretrained("meta-llama/Llama-2-7b-hf", use_auth_token=True)
+except Exception as e:
+    logging.warning(f"Failed to load Llama-2 tokenizer: {e}")
+    logging.info("Falling back to a default tokenizer")
+    tokenizer = AutoTokenizer.from_pretrained("facebook/opt-350m")
 
 def num_tokens(text: str) -> int:
     return len(tokenizer.encode(text))
