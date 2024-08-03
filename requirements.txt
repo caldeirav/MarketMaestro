@@ -1,7 +1,11 @@
 langchain==0.2.12
 langchain-core==0.2.28
 langchain-openai==0.1.20
+langchain-community==0.2.11
+langchain-huggingface==0.0.3
+pypdf==4.3.1
 openai==1.38.0
+sentence-transformers==3.0.1
 fastapi==0.112.0
 uvicorn==0.30.5
 pydantic==2.8.2

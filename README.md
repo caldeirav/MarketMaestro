@@ -44,7 +44,7 @@ This project contains a stock recommendation agent and an evaluator to assess it
 - `src/agent.py`: Contains the stock recommendation agent
 - `src/evaluator.py`: Contains the evaluation logic
 - `src/config.py`: Configuration settings
-- `data/annual_reports/`: Directory to store company annual reports
+- `data/annual_reports/`: Directory to store company annual reports (PDF format)
 - `tests/`: Contains unit tests
 
 ## Running Tests
