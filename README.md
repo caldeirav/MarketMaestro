@@ -12,7 +12,8 @@ This project contains a stock recommendation agent and an evaluator to assess it
    cd stock-recommendation-project
    ```
 3. Replace the placeholder MODEL_SERVICE and API_KEY in src/config.py with your actual values if they differ.
-4. Run the setup script to create a virtual environment and install dependencies:
+4. Add company reports in PDF format under `data/annual_reports/`. A good source for such reports is the [US Securities and Exchange Commission Filing Search](https://www.sec.gov/search-filings) 10-K and 10-Q reports viewed as HTML and saved in PDF.
+5. Run the setup script to create a virtual environment and install dependencies:
 
    ```
    ./setup.sh
@@ -44,7 +45,7 @@ This project contains a stock recommendation agent and an evaluator to assess it
 - `src/agent.py`: Contains the stock recommendation agent
 - `src/evaluator.py`: Contains the evaluation logic
 - `src/config.py`: Configuration settings
-- `data/annual_reports/`: Directory to store company annual reports (PDF format)
+- `data/annual_reports/`: Directory to store company annual or quarterly reports (PDF format)
 - `tests/`: Contains unit tests
 
 ## Running Tests

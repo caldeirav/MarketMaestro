@@ -5,7 +5,6 @@ from typing import List, Dict, Any
 
 os.environ["TOKENIZERS_PARALLELISM"] = "false"
 
-from crewai import Agent
 from langchain_openai import ChatOpenAI
 from langchain_core.prompts import ChatPromptTemplate
 from langchain_community.vectorstores import Chroma
@@ -13,17 +12,20 @@ from langchain_huggingface import HuggingFaceEmbeddings
 from langchain_community.document_loaders import PyPDFLoader
 from langchain.text_splitter import CharacterTextSplitter
 from langchain_core.output_parsers import StrOutputParser
+from langchain_core.runnables import RunnablePassthrough
 from transformers import AutoTokenizer
 
 from src.config import MODEL_SERVICE, API_KEY, ANNUAL_REPORTS_DIR, setup_logging
 
 # Set up logging
 setup_logging()
+
 class StockRecommendationAgent:
     def __init__(self):
         self.llm = ChatOpenAI(base_url=MODEL_SERVICE, api_key=API_KEY, streaming=True, max_tokens=1500)
         self.tokenizer = self._initialize_tokenizer()
         self.db = self._initialize_database()
+        self.sys_prompt = "You are an AI language model. You are a cautious assistant. You carefully follow instructions. You are helpful and harmless and you follow ethical guidelines and promote positive behavior."
         self.summarize_chain = self._create_summarize_chain()
         self.recommend_chain = self._create_recommend_chain()
 
@@ -55,7 +57,8 @@ class StockRecommendationAgent:
 
     def _create_summarize_chain(self):
         summarize_prompt = ChatPromptTemplate.from_messages([
-            ("system", "Summarize the key financial information for the given stock based on the annual report data."),
+            ("system", self.sys_prompt),
+            ("human", "Summarize the key financial information for the given stock based on the annual report data."),
             ("human", "Stock: {stock}\n\nAnnual Report Info: {annual_report_info}"),
             ("human", "Provide a brief summary of the key financial metrics and growth prospects.")
         ])
@@ -63,9 +66,19 @@ class StockRecommendationAgent:
 
     def _create_recommend_chain(self):
         recommend_prompt = ChatPromptTemplate.from_messages([
-            ("system", "You are a financial advisor. Recommend the top 3 stocks from the given summaries."),
+            ("system", self.sys_prompt),
+            ("human", "You are a financial advisor with expertise in stock recommendations. Your task is to provide tailored stock recommendations based on the given summaries and the specific query from the user."),
             ("human", "Stock Summaries: {stock_summaries}"),
-            ("human", "Based on these summaries, provide your top 3 stock recommendations for {query}. For each recommended stock, provide a brief justification. Avoid repeating information and keep each recommendation concise.")
+            ("human", "User Query: {query}"),
+            ("human", """Based on the stock summaries provided and the user's specific query, please provide your stock recommendations. Follow these guidelines:
+            1. Address the user's query directly.
+            2. Provide recommendations that are most relevant to the query.
+            3. For each recommended stock, provide a brief justification based on the information in the summaries.
+            4. If the query asks for a specific number of stocks, adhere to that request.
+            5. If no specific number is mentioned, use your judgment to provide an appropriate number of recommendations.
+            6. Consider potential risks and market conditions in your recommendations.
+            7. Avoid repeating information and keep each recommendation concise.
+            8. If the query asks for something that cannot be directly answered with stock recommendations, provide the most relevant financial advice possible based on the available information.""")
         ])
         return recommend_prompt | self.llm | StrOutputParser()
 
@@ -95,10 +108,19 @@ class StockRecommendationAgent:
         logging.info("Starting stock recommendation process...")
         start_time = time.time()
         
+        # Format the query using the Granite-7b-lab prompt template
+        formatted_query = f'<|system|>\n{self.sys_prompt}\n<|user|>\n{query}\n<|assistant|>\n'
+        
         all_summaries = self.get_stock_summaries(self.potential_stocks)
         
-        logging.info("Generating final recommendations...")
-        result = self.recommend_chain.invoke({"stock_summaries": all_summaries, "query": query})
+        logging.info("Generating recommendations based on query...")
+        result = self.recommend_chain.invoke({
+            "stock_summaries": all_summaries,
+            "query": formatted_query
+        })
+        
+        # Remove any potential '<|endoftext|>' tokens from the response
+        result = result.replace('<|endoftext|>', '').strip()
         
         end_time = time.time()
         logging.info(f"Recommendation process completed in {end_time - start_time:.2f} seconds")
@@ -109,17 +131,6 @@ class StockRecommendationAgent:
 def run_agent(query: str) -> str:
     agent = StockRecommendationAgent()
     return agent.get_stock_recommendations(query)
-
-# Create a crewai-compatible agent
-def create_crewai_agent():
-    stock_agent = StockRecommendationAgent()
-    return Agent(
-        role="Stock Recommendation Specialist",
-        goal="Provide accurate stock recommendations based on annual report analysis",
-        backstory="An AI agent specialized in analyzing financial reports and recommending stocks.",
-        tools=[stock_agent.get_stock_recommendations],
-        verbose=True
-    )
 
 # Explicitly export the run_agent function
 get_stock_recommendations = run_agent
