@@ -1,6 +1,12 @@
-# MarketMaestro: An AI Agent for Stock Recommendation
+<div align="center">
 
-This project contains a stock recommendation agent and an evaluator to assess its performance.
+  <img src="website/static/img/project/MarketMaestro_Logo_Rounded.png" alt="logo" width="200" height="auto" />
+  <h1>MarketMaestro</h1>
+  
+  <p>
+    An AI Agent for Stock Recommendation 
+  </p>
+</div>
 
 ## Installation
 
