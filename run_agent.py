@@ -13,7 +13,7 @@ def main():
     logging.info(f"Received query: {query}")
 
     # Execute the task using the agent
-    result = agent.execute_task(query, context=None)
+    result = agent.execute_task(query, context=None, tools=None)
 
     logging.info("Recommendation process completed. Printing results:")
     print(result)

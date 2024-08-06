@@ -2,7 +2,7 @@ import os
 import time
 import logging
 import re
-from typing import List, Dict, Any
+from typing import List, Dict, Optional, Any
 
 os.environ["TOKENIZERS_PARALLELISM"] = "false"
 
@@ -15,7 +15,7 @@ from langchain.text_splitter import CharacterTextSplitter
 from langchain_core.output_parsers import StrOutputParser
 from langchain_core.runnables import RunnablePassthrough
 from transformers import AutoTokenizer
-from crewai import Agent
+from crewai import Agent, Task
 
 from src.config import MODEL_SERVICE, API_KEY, ANNUAL_REPORTS_DIR, setup_logging
 
@@ -24,7 +24,7 @@ setup_logging()
 
 class StockRecommendationAgent(Agent):
     def __init__(self):
-        llm = ChatOpenAI(base_url=MODEL_SERVICE, api_key=API_KEY, streaming=True, max_tokens=500)
+        llm = ChatOpenAI(base_url=MODEL_SERVICE, api_key=API_KEY, streaming=True, max_tokens=256)
         super().__init__(
             name="Stock Recommendation Agent",
             role="Financial Analyst",
@@ -69,7 +69,7 @@ class StockRecommendationAgent(Agent):
     def _create_summarize_chain(self):
         summarize_prompt = ChatPromptTemplate.from_messages([
             ("system", self._sys_prompt),
-            ("human", "Summarize the key financial information for the given stock based on the annual report data, focusing on aspects relevant to the query. Provide a concise summary (250 words or less) of the key financial metrics, growth prospects, and any initiative or investment directly related to the query."),
+            ("human", "Summarize the key financial information for the given stock based on the annual report data, focusing on aspects relevant to the query. Provide a concise summary (300 words or less) of the key financial metrics, growth prospects, and any initiative or investment directly related to the query."),
             ("human", "Stock: {stock}\n\nAnnual Report Info: {annual_report_info}\n\nQuery: {query}")
         ])
         return summarize_prompt | self.llm | StrOutputParser()
@@ -77,7 +77,7 @@ class StockRecommendationAgent(Agent):
     def _create_recommend_chain(self):
         recommend_prompt = ChatPromptTemplate.from_messages([
             ("system", self._sys_prompt),
-            ("human", "You are a financial advisor. Based on the following concise stock summaries and the user's query, recommend one stock that best fits the criteria. Provide a brief justification for your recommendation."),
+            ("human", "You are a financial advisor. Based on the following concise stock summaries and the user's query, recommend one stock that best fits the criteria. Provide a brief justification (200 words or less) for your recommendation."),
             ("human", "Stock Summaries: {stock_summaries}"),
             ("human", "User Query: {query}"),
             ("human", "Recommend one stock and explain why it's the best fit for the query in 150 words or less.")
@@ -142,13 +142,28 @@ class StockRecommendationAgent(Agent):
         
         return result
 
-    def execute_task(self, task, context=None):
-        query = task if isinstance(task, str) else task.description
+    def execute_task(
+        self,
+        task: Task,
+        context: Optional[dict] = None,
+        tools: Optional[List[Any]] = None
+    ) -> str:
+        query = task.description if isinstance(task, Task) else task
+        
+        # Log received arguments for debugging
+        # For now, we're not using context or tools in our implementation
+        # but we could extend the functionality to use them in the future
+        logging.info(f"Executing task: {query}")
+        if context:
+            logging.info(f"Received context: {context}")
+        if tools:
+            logging.info(f"Received tools: {[tool.__class__.__name__ for tool in tools]}")
+
         return self.get_stock_recommendations(query)
 
 # Example usage
 if __name__ == "__main__":
     agent = StockRecommendationAgent()
     query = input("Enter your stock recommendation query: ")
-    result = agent.execute_task(query)
+    result = agent.execute_task(query, context=None, tools=None)
     print(result)
