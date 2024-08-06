@@ -142,7 +142,7 @@ class StockRecommendationAgent(Agent):
         
         return result
 
-    def execute_task(self, task):
+    def execute_task(self, task, context=None):
         query = task if isinstance(task, str) else task.description
         return self.get_stock_recommendations(query)
 

@@ -28,7 +28,6 @@ async def execute_crew_tasks(request: CrewTaskRequest):
         tasks = [
             Task(
                 description=task,
-                expected_output="A detailed stock recommendation based on the query.",
                 agent=stock_agent
             ) for task in request.tasks
         ]
