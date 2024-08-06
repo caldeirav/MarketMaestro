@@ -1,4 +1,4 @@
-from src.agent import get_stock_recommendations
+from src.agent import StockRecommendationAgent
 from src.config import setup_logging
 import logging
 
@@ -6,9 +6,15 @@ import logging
 setup_logging()
 
 def main():
+    # Create an instance of the StockRecommendationAgent
+    agent = StockRecommendationAgent()
+
     query = input("Enter your stock recommendation query: ")
     logging.info(f"Received query: {query}")
-    result = get_stock_recommendations(query)
+
+    # Execute the task using the agent
+    result = agent.execute_task(query)
+
     logging.info("Recommendation process completed. Printing results:")
     print(result)
 

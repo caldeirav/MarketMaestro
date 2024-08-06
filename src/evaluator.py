@@ -9,7 +9,7 @@ from langchain_core.output_parsers import StrOutputParser
 from langchain_core.runnables import RunnablePassthrough
 
 from src.config import MODEL_SERVICE, API_KEY, CRITERIA, setup_logging
-from src.agent import get_stock_recommendations
+from src.agent import StockRecommendationAgent
 
 # Set up logging
 setup_logging()
@@ -134,18 +134,19 @@ def evaluate_agent_response(query: str, response: str) -> Dict[str, Dict[str, An
 # Example queries for evaluation
 example_queries: List[str] = [
     "What are the top 3 US tech stocks you would recommend for medium term appreciation over the next 3 years?",
-    "Can you suggest 5 undervalued tech stocks with high growth potential?",
+    "Can you suggest 2 undervalued tech stocks with high growth potential?",
     "What are some promising AI-focused stocks that could see significant gains in the next 2-3 years?"
 ]
 
 # Run evaluations
 def run_evaluations() -> List[Dict[str, Any]]:
     all_results = []
+    agent = StockRecommendationAgent()
     for query in example_queries:
         logging.info(f"Processing query: {query}")
         
         # Get recommendation from the agent
-        response = get_stock_recommendations(query)
+        response = agent.execute_task(query)
         
         # Remove any potential '<|endoftext|>' tokens from the response
         response = response.replace('<|endoftext|>', '').strip()
