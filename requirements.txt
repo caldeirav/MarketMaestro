@@ -9,6 +9,6 @@ sentence-transformers==3.0.1
 fastapi==0.112.0
 uvicorn==0.30.5
 pydantic==2.8.2
-chromadb==0.5.5
+chromadb==0.4.24
 transformers==4.43.3
-crewai==0.41.1
+crewai==0.51.1

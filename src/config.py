@@ -2,7 +2,7 @@ import os
 import logging
 
 # Model and API configuration
-MODEL_SERVICE = "http://localhost:62289/v1/"
+MODEL_SERVICE = "http://localhost:53079/v1/"
 API_KEY = "sk-no-key-required"
 
 # Directory configuration

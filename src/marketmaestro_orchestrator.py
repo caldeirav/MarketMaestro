@@ -1,6 +1,6 @@
 import logging
 from fastapi import FastAPI, HTTPException
-from pydantic import BaseModel
+from pydantic import BaseModel, ConfigDict
 from typing import List, Optional, Dict, Any
 from crewai import Crew, Task, Agent
 
@@ -17,9 +17,13 @@ class CrewTaskRequest(BaseModel):
     context: Optional[Dict[str, Any]] = None
     tools: Optional[List[str]] = None
 
+    model_config = ConfigDict(populate_by_name=True)
+
 class CrewTaskResponse(BaseModel):
     results: List[str]
     token_usage: Optional[Dict[str, int]] = None
+
+    model_config = ConfigDict(populate_by_name=True)
 
 @app.post("/execute_crew_tasks", response_model=CrewTaskResponse)
 async def execute_crew_tasks(request: CrewTaskRequest):
@@ -58,7 +62,15 @@ async def execute_crew_tasks(request: CrewTaskRequest):
             # Attempt to get the raw output, fallback to string representation
             task_results.append(getattr(task, 'raw', str(task)))
         
-        token_usage = getattr(results, 'token_usage', None)
+        # Convert UsageMetrics to a dictionary
+        token_usage = None
+        if hasattr(results, 'token_usage'):
+            token_usage = {
+                'total_tokens': results.token_usage.total_tokens,
+                'prompt_tokens': results.token_usage.prompt_tokens,
+                'completion_tokens': results.token_usage.completion_tokens,
+                'successful_requests': results.token_usage.successful_requests
+            }
         
         logger.info(f"Crew tasks completed. Results: {task_results}")
         return CrewTaskResponse(results=task_results, token_usage=token_usage)

@@ -24,7 +24,7 @@ setup_logging()
 
 class StockRecommendationAgent(Agent):
     def __init__(self):
-        llm = ChatOpenAI(base_url=MODEL_SERVICE, api_key=API_KEY, streaming=True, max_tokens=256)
+        llm = ChatOpenAI(base_url=MODEL_SERVICE, api_key=API_KEY, streaming=True, max_tokens=4096)
         super().__init__(
             name="Stock Recommendation Agent",
             role="Financial Analyst",
@@ -69,7 +69,7 @@ class StockRecommendationAgent(Agent):
     def _create_summarize_chain(self):
         summarize_prompt = ChatPromptTemplate.from_messages([
             ("system", self._sys_prompt),
-            ("human", "Summarize the key financial information for the given stock based on the annual report data, focusing on aspects relevant to the query. Provide a concise summary (300 words or less) of the key financial metrics, growth prospects, and any initiative or investment directly related to the query."),
+            ("human", "Summarize the key financial information for the given stock based on the annual report data, focusing on aspects relevant to the query. Provide a concise summary (400 words or less) of the key financial metrics, growth prospects, and any initiative or investment directly related to the query."),
             ("human", "Stock: {stock}\n\nAnnual Report Info: {annual_report_info}\n\nQuery: {query}")
         ])
         return summarize_prompt | self.llm | StrOutputParser()
